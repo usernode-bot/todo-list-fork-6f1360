@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Todo List — yours, actually</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+  // usernode-dev-console@1
+  (function () {
+    if (window.__usernodeDevConsole) return;
+    window.__usernodeDevConsole = true;
+    var S = '__usernodeDevConsole';
+    function serialize(v, depth) {
+      depth = depth || 0;
+      try {
+        if (v === undefined) return 'undefined';
+        if (v === null) return 'null';
+        if (typeof v === 'string') return v;
+        if (typeof v === 'number' || typeof v === 'boolean') return String(v);
+        if (typeof v === 'function') return '[Function ' + (v.name || 'anonymous') + ']';
+        if (v instanceof Error) return (v.stack || (v.name + ': ' + v.message));
+        if (depth > 3) return '[…]';
+        var seen = new WeakSet();
+        return JSON.stringify(v, function (k, val) {
+          if (typeof val === 'object' && val !== null) {
+            if (seen.has(val)) return '[Circular]';
+            seen.add(val);
+          }
+          if (typeof val === 'function') return '[Function ' + (val.name || 'anonymous') + ']';
+          if (val instanceof Error) return val.stack || (val.name + ': ' + val.message);
+          return val;
+        });
+      } catch (e) { try { return String(v); } catch (_) { return '[unserializable]'; } }
+    }
+    function post(level, args, meta) {
+      try {
+        var payload = {
+          sentinel: S,
+          level: level,
+          args: Array.prototype.slice.call(args).map(function (a) { return serialize(a); }),
+          ts: Date.now(),
+          url: location.href,
+        };
+        if (meta) for (var k in meta) payload[k] = meta[k];
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage(payload, '*');
+        }
+      } catch (_) {}
+    }
+    ['log','info','warn','error','debug'].forEach(function (level) {
+      var orig = console[level] ? console[level].bind(console) : function () {};
+      console[level] = function () { post(level, arguments); orig.apply(null, arguments); };
+    });
+    window.addEventListener('error', function (e) {
+      var msg = (e.error && (e.error.stack || e.error.message)) || e.message || 'Error';
+      post('error', [msg], { source: e.filename || '', line: e.lineno || 0, col: e.colno || 0, kind: 'error' });
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      var r = e.reason;
+      var msg = (r && (r.stack || r.message)) || String(r);
+      post('error', [msg], { kind: 'unhandledrejection' });
+    });
+    try { post('info', ['[dev-console ready]'], { kind: 'ready' }); } catch (_) {}
+  })();
+  </script>
+  <!-- Centrally hosted Tailwind runtime — see the note in index.html. -->
+  <script src="__USERNODE_PLATFORM_ORIGIN__/usernode-tailwind/v1/tailwind.js"></script>
+  <script>tailwind.config = { darkMode: 'class', future: { hoverOnlyWhenSupported: true } }</script>
+  <script>
+    // Apply the theme before first paint to avoid a flash. Explicit choice in
+    // localStorage wins (same key the app writes); otherwise follow the
+    // system preference.
+    (function () {
+      try {
+        var pref = localStorage.getItem('todo:theme');
+        var dark = pref === 'dark' ||
+          (pref !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.classList.toggle('dark', dark);
+      } catch (_) {}
+    })();
+  </script>
+  <!-- Same engine as the app (public/index.html): the hosted usernode-native
+       kit plus the shared /theme.css. theme.css must come AFTER native.css
+       so the --un-* theme overrides win. -->
+  <link rel="stylesheet" href="__USERNODE_PLATFORM_ORIGIN__/usernode-native/v1/native.css">
+  <link rel="stylesheet" href="/theme.css">
+  <script src="__USERNODE_PLATFORM_ORIGIN__/usernode-native/v1/native.js"></script>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-2xl mx-auto p-4 pb-24">
+    <header id="landing-bar" class="un-navbar un-safe-top">
+      <!-- w-full matters: .un-navbar is itself a flex container, so
+           without it this max-w wrapper shrinks to content width. -->
+      <div class="w-full max-w-2xl mx-auto h-12 flex items-center justify-center px-4 relative">
+        <span class="un-navbar-title absolute left-1/2 -translate-x-1/2">Todo List</span>
+      </div>
+    </header>
+    <div style="height: calc(3rem + env(safe-area-inset-top))"></div>
+    <h1 id="landing-large-title" class="un-navbar-large pt-2 pb-2">Todo List</h1>
+    <p class="text-[15px] max-w-[40ch]" style="color: var(--label2)">A shared todo app you can make perfect for yourself. This page is the real thing — check things off, add your own.</p>
+    <p class="text-[15px] mt-1.5" style="color: var(--label2)">Already have an account? <a class="tinted font-semibold" href="__USERNODE_PLATFORM_ORIGIN__">Open it in Usernode</a>.</p>
+    <div id="list"></div>
+    <p class="text-[12.5px] mt-4 px-2" style="color: var(--label3)">Nothing here is saved anywhere but this browser tab — your real lists start with an account, are private by default, and are yours for good.</p>
+  </div>
+
+  <script>
+    // A fully client-side demo list (spec §6.10): the pre-filled items ARE the
+    // platform pitch, one claim per checkable line. State is in-session only.
+    var KEY = 'todo:landing-demo';
+    // Both links to the platform go through this placeholder, which server.js
+    // substitutes at boot from USERNODE_PLATFORM_ORIGIN. Nothing in this file
+    // names a platform hostname: one written down here is one that dies the
+    // next time the platform moves.
+    var CTA_URL = '__USERNODE_PLATFORM_ORIGIN__';
+    var SEED = {
+      name: 'Welcome',
+      categories: [
+        { name: 'Try it', items: [
+          { text: 'Tap the circle — that’s the whole app', checked: false },
+          { text: 'Add something of your own below', checked: false },
+        ]},
+        { name: 'Why this one’s different', items: [
+          { text: 'No ads, ever — structurally', checked: false },
+          { text: 'This app is owned by the people who use it', checked: false },
+          { text: 'Want a feature? You can literally add it — describe it, AI builds it, members approve it', checked: false },
+          { text: 'Clone it — your copy is yours forever; nobody can take it away or make it worse', checked: false },
+          { text: 'Share lists with your people — no wallet, no crypto anything', checked: false },
+        ]},
+      ],
+    };
+
+    function load() {
+      try {
+        var s = JSON.parse(sessionStorage.getItem(KEY));
+        if (s && Array.isArray(s.categories)) return s;
+      } catch (_) {}
+      return JSON.parse(JSON.stringify(SEED));
+    }
+    var state = load();
+    function save() { try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {} }
+
+    function esc(t) {
+      return String(t).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    // Same grouped-list markup the app renders (un-group / un-group-row /
+    // un-pressable / todo-check) so the demo is pixel-for-pixel the product.
+    function render() {
+      var html = '';
+      state.categories.forEach(function (cat, ci) {
+        html += '<div class="flex items-center gap-1.5 px-2 py-1 mb-1.5 mt-6">' +
+          '<h2 class="un-group-header flex-1 truncate">' + esc(cat.name) + '</h2></div>';
+        html += '<div class="un-group">';
+        if (ci === 0) {
+          // The adder lives where the app puts it — the top row of the card.
+          // It stays open (unlike the app's toggled one): it's the page's
+          // main invitation to interact.
+          html += '<form onsubmit="return addItem(event)" class="un-group-row flex items-center gap-2.5 px-4 py-2">' +
+            '<span class="tinted text-[18px] leading-none select-none">+</span>' +
+            '<input id="add-input" name="text" placeholder="Add your own item…" autocomplete="off" enterkeyhint="done"' +
+            ' class="flex-1 bg-transparent text-[15px] focus:outline-none py-1" style="color: var(--label)">' +
+            '</form>';
+        }
+        cat.items.forEach(function (it, ii) {
+          html += '<label class="un-group-row un-pressable flex items-center gap-2.5 px-4 py-2.5 cursor-pointer">' +
+            '<input type="checkbox" class="todo-check" data-ci="' + ci + '" data-ii="' + ii + '"' + (it.checked ? ' checked' : '') + '>' +
+            '<span class="flex-1 text-[16px] break-words' + (it.checked ? ' line-through' : '') + '"' +
+            (it.checked ? ' style="color: var(--label2)"' : '') + '>' + esc(it.text) + '</span></label>';
+        });
+        html += '</div>';
+      });
+      // The signup CTA is itself a checkable row — checking it is the tap.
+      html += '<div class="flex items-center gap-1.5 px-2 py-1 mb-1.5 mt-6">' +
+        '<h2 class="un-group-header flex-1 truncate">One more</h2></div>' +
+        '<div class="un-group">' +
+        '<label class="un-group-row un-pressable flex items-center gap-2.5 px-4 py-2.5 cursor-pointer" id="cta-row">' +
+        '<input type="checkbox" class="todo-check">' +
+        '<span class="flex-1 text-[16px] font-bold" style="color: var(--tint-deep)">Create your account — keeps this list</span></label></div>';
+      document.getElementById('list').innerHTML = html;
+
+      document.querySelectorAll('.todo-check[data-ci]').forEach(function (box) {
+        box.addEventListener('change', function () {
+          var it = state.categories[+box.dataset.ci].items[+box.dataset.ii];
+          it.checked = box.checked;
+          save();
+          render();
+        });
+      });
+      document.getElementById('cta-row').addEventListener('click', function (ev) {
+        ev.preventDefault();
+        // Best-effort hand-off: the app imports this as your first list when
+        // this browser shares storage with the platform's iframe.
+        try {
+          localStorage.setItem('todo:landing-list', JSON.stringify({
+            name: state.name || 'Welcome',
+            categories: state.categories.filter(function (c) { return c.items.length; }),
+          }));
+        } catch (_) {}
+        window.location.href = CTA_URL;
+      });
+    }
+
+    // Global because the adder form is re-rendered with the list and wires
+    // itself via an inline onsubmit — the same pattern the app uses.
+    function addItem(ev) {
+      ev.preventDefault();
+      var input = document.getElementById('add-input');
+      var text = input.value.trim();
+      if (!text) return false;
+      state.categories[0].items.push({ text: text, checked: false });
+      save();
+      render();
+      var fresh = document.getElementById('add-input');
+      if (fresh) fresh.focus();
+      return false;
+    }
+
+    render();
+
+    // Kit wiring: hairline-on-scroll + large-title collapse, exactly like the
+    // app's Home. The bar lives outside the re-rendered #list, so attaching
+    // once is enough. Guarded like the app in case native.js failed to load.
+    if (window.unNative) {
+      unNative.attachNavBar(document.getElementById('landing-bar'), {
+        largeTitleEl: document.getElementById('landing-large-title'),
+      });
+    }
+  </script>
+</body>
+</html>

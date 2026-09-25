@@ -1,0 +1,234 @@
+{
+  "icon": {
+    "emoji": "📝"
+  },
+  "secrets": [],
+  "tests": [
+    {
+      "name": "App shell loads",
+      "path": "/",
+      "expectSelector": "#app"
+    },
+    {
+      "name": "Native kit boots",
+      "path": "/",
+      "expectSelector": "html.un-ios, html.un-android, html.un-desktop"
+    },
+    {
+      "name": "The app loads the platform bridge, which is what tells the shell it can open offline",
+      "path": "/",
+      "expectSelector": "script[src$=\"/usernode-bridge/v1/bridge.js\"]"
+    },
+    {
+      "name": "Shared list counts the owner in its member count",
+      "path": "/",
+      "expectText": "2 members"
+    },
+    {
+      "name": "Home shows shared-list activity",
+      "path": "/",
+      "expectText": "staging-demo-user checked"
+    },
+    {
+      "name": "The landing page's link to the platform is a resolved origin",
+      "path": "/landing.html",
+      "expectSelector": "a[href^=\"https://\"]"
+    },
+    {
+      "name": "Landing page renders the demo list on the shared theme",
+      "path": "/landing.html",
+      "expectSelector": ".un-group .todo-check",
+      "expectText": "Create your account"
+    },
+    {
+      "name": "Search clear button renders as a large touch target",
+      "path": "/?shot=search",
+      "expectSelector": "#search-clear.un-touch-target:not(.hidden)"
+    },
+    {
+      "name": "Import modal is capped to the card, not the viewport",
+      "path": "/?shot=import",
+      "expectSelector": ".un-modal.modal-wide .modal-card.md-body #md-text",
+      "expectText": "Import markdown"
+    },
+    {
+      "name": "Members modal is capped to the card, not the viewport",
+      "path": "/?shot=members",
+      "expectSelector": ".un-modal.modal-narrow .modal-card #members-body",
+      "expectText": "Members"
+    },
+    {
+      "name": "The invite box offers autocomplete instead of a free-text field",
+      "path": "/?shot=members",
+      "expectSelector": "#members-body form #invite-input[role=combobox] + #invite-suggest[role=listbox]",
+      "expectText": "Invite anyone on Usernode"
+    },
+    {
+      "name": "The invite typeahead lists the usernames it matched",
+      "path": "/?shot=invite",
+      "expectSelector": "#invite-suggest[role=listbox]:not(.hidden) li[role=option]",
+      "expectText": "@staging-demo"
+    },
+    {
+      "name": "The invite box refuses a username that doesn't exist",
+      "path": "/?shot=invitenone",
+      "expectSelector": "#members-body #invite-note:not(.hidden)",
+      "expectText": "No one on Usernode matches"
+    },
+    {
+      "name": "Offline status strip renders",
+      "path": "/?shot=offline",
+      "expectSelector": "#offline-chip",
+      "expectText": "showing saved copy"
+    },
+    {
+      "name": "Syncing status strip renders",
+      "path": "/?shot=syncing",
+      "expectSelector": "#offline-chip",
+      "expectText": "Syncing 2 changes"
+    },
+    {
+      "name": "First load renders skeleton placeholders, not a spinner",
+      "path": "/?shot=loading",
+      "expectSelector": "#app .sk"
+    },
+    {
+      "name": "A row waiting to sync shows its pending marker",
+      "path": "/?shot=pending",
+      "expectSelector": ".item-row [data-pending-dot]"
+    },
+    {
+      "name": "Slow-connection status strip renders",
+      "path": "/?shot=slow",
+      "expectSelector": "#offline-chip",
+      "expectText": "Slow connection"
+    },
+    {
+      "name": "An empty category offers a tappable way to add the first item",
+      "path": "/?shot=empty",
+      "expectSelector": "button.empty-note.un-touch-target",
+      "expectText": "No items yet"
+    },
+    {
+      "name": "A finished category keeps a lane to drop items into",
+      "path": "/?shot=drop",
+      "expectSelector": ".cat-section .active-items button.empty-note.done-note",
+      "expectText": "All done — add another"
+    },
+    {
+      "name": "The finished category still shows its completed row beside that lane",
+      "path": "/?shot=drop",
+      "expectSelector": ".cat-section .done-items .item-row[data-checked=\"1\"]",
+      "expectText": "Renew the travel insurance"
+    },
+    {
+      "name": "Undo is available in the list header after a change",
+      "path": "/?shot=undo",
+      "expectSelector": "#undo-btn[aria-disabled=false]:not([disabled])"
+    },
+    {
+      "name": "A list with due dates on shows a due chip per item",
+      "path": "/?shot=due",
+      "expectSelector": ".item-row .due-chip[data-due]",
+      "expectText": "Today"
+    },
+    {
+      "name": "The due-date editor opens on the phone-width card",
+      "path": "/?shot=dueeditor",
+      "expectSelector": ".un-modal.modal-narrow .modal-card#due-editor #due-date-input",
+      "expectText": "Due date"
+    },
+    {
+      "name": "A todo row's checkbox carries its own enlarged hit target",
+      "path": "/?shot=collapsed",
+      "expectSelector": ".item-row label.check-hit .todo-check"
+    },
+    {
+      "name": "Category headers offer an explicit rename control",
+      "path": "/?shot=collapsed",
+      "expectSelector": ".cat-head button.cat-rename"
+    },
+    {
+      "name": "The category name is the collapse control",
+      "path": "/?shot=collapsed",
+      "expectSelector": ".cat-head button.cat-toggle[aria-expanded=true] .un-group-header"
+    },
+    {
+      "name": "A collapsed category hides its items and counts them instead",
+      "path": "/?shot=collapsed",
+      "expectSelector": ".cat-head .cat-toggle[aria-expanded=false] ~ .cat-count",
+      "expectText": "items"
+    },
+    {
+      "name": "The offline and storage read-out renders",
+      "path": "/?shot=diag",
+      "expectSelector": ".un-modal.modal-narrow .modal-card #diag-body",
+      "expectText": "Home copy saved"
+    },
+    {
+      "name": "A device that refuses offline storage gets honest strip copy",
+      "path": "/?shot=nostore",
+      "expectSelector": "#offline-chip:not(.hidden)",
+      "expectText": "changes will be lost"
+    },
+    {
+      "name": "Home shows progress while it saves every list for offline",
+      "path": "/?shot=syncbar",
+      "expectSelector": "#sync-bar:not(.hidden) .sync-track .sync-fill",
+      "expectText": "Saving lists for offline"
+    },
+    {
+      "name": "...and says so when every list is saved",
+      "path": "/?shot=syncdone",
+      "expectSelector": "#sync-bar:not(.hidden) .sync-fill",
+      "expectText": "All lists saved for offline"
+    },
+    {
+      "name": "...and says when the cap, not storage, is what stopped it",
+      "path": "/?shot=synccap",
+      "expectSelector": "#sync-bar:not(.hidden) .sync-fill",
+      "expectText": "10 are already saved"
+    },
+    {
+      "name": "A pass that only brings saved copies up to date says so",
+      "path": "/?shot=syncrefresh",
+      "expectSelector": "#sync-bar:not(.hidden) .sync-track .sync-fill",
+      "expectText": "Updating saved lists… 1 of 3"
+    },
+    {
+      "name": "...and confirms the saved copies are current, not newly saved",
+      "path": "/?shot=syncfresh",
+      "expectSelector": "#sync-bar:not(.hidden) .sync-fill",
+      "expectText": "Saved lists are up to date"
+    },
+    {
+      "name": "An offline boot with nothing saved keeps the app's chrome and explains itself",
+      "path": "/?shot=nocache",
+      "expectSelector": "body.is-offline #app header#home-bar ~ div button",
+      "expectText": "aren't saved on this device yet"
+    },
+    {
+      "name": "...and the strip admits there is no saved copy rather than promising one",
+      "path": "/?shot=nocache",
+      "expectSelector": "#offline-chip:not(.hidden)",
+      "expectText": "nothing saved on this device yet"
+    },
+    {
+      "name": "Completed items get a plain menu row each",
+      "path": "/?shot=menu",
+      "expectSelector": "#drawer:not(.hidden) button[data-done-row=\"show\"] + button[data-done-row=\"hide\"]",
+      "expectText": "Show all completed"
+    },
+    {
+      "name": "Both completed rows stay tappable, with neither held selected",
+      "path": "/?shot=menu",
+      "expectSelector": "#drawer button[data-done-row=\"hide\"]:not([disabled]):not([aria-checked])",
+      "expectText": "Hide all completed"
+    }
+  ],
+  "visibility": {
+    "build": "private",
+    "view": "public"
+  },
+  "name": "Todo List (fork)"
+}

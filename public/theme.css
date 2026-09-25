@@ -1,0 +1,95 @@
+/* ── Todo List shared theme ──────────────────────────────────────────────
+   Loaded by BOTH public/index.html (the app) and public/landing.html (the
+   logged-out demo page) so the two surfaces can never drift apart again.
+   Link order matters: this file must come AFTER the usernode-native kit's
+   native.css so the --un-* overrides below win over the kit's defaults. */
+
+/* ── Series brand palette — paper/ink with the teal accent (Appendix A).
+   Destructive red stays systemRed: a safety convention, not a guilt
+   mechanic. It is also the overdue colour on a due-date chip — stating a
+   fact about a date that has passed, never a scold: a ticked item is never
+   overdue, and lists without due dates (the default) never show it. ── */
+:root {
+  --bg: #FAF6EE;                      /* paper */
+  --card: #ffffff;
+  --separator: #E7DFCC;               /* line */
+  --label: #1F2B47;                   /* ink */
+  --label2: #5A6378;                  /* ink-soft */
+  --label3: rgba(90, 99, 120, .55);
+  --fill: #F3EDDF;                    /* paper-deep — search / field fills */
+  --fill2: #E3DAC4;                   /* one step deeper — controls ON a field */
+  --gray: #8e8e93;                    /* neutral swipe action */
+  --tint: #2E9E8F;                    /* teal accent */
+  --tint-deep: #1f7a6d;
+  --danger: #ff3b30;                  /* systemRed */
+  --bar: rgba(250, 246, 238, .82);    /* nav-bar wash over --bg */
+
+  /* usernode-native theme overrides — route the kit through the app
+     palette. Also repeated under .dark so they beat the kit's own
+     .dark defaults. */
+  --un-accent: var(--tint);
+  --un-accent-contrast: #ffffff;
+  --un-action-danger: var(--danger);
+  --un-action-neutral: var(--gray);
+  --un-surface: var(--card);
+  --un-hairline: var(--separator);
+  --un-muted: var(--label2);
+  --un-group-bg: var(--card);
+  --un-sheet-bg: var(--card);
+  --un-navbar-bg: var(--bar);
+  --un-backdrop: rgba(0, 0, 0, .4);
+}
+/* Dark mode: the spec defines no dark paper palette, so this is derived
+   from ink — a deep ink-navy ground with paper-toned labels and the teal
+   lifted one step for contrast. */
+.dark {
+  --bg: #131a2c;
+  --card: #1d2539;
+  --separator: rgba(231, 223, 204, .18);
+  --label: #F3EDDF;
+  --label2: rgba(243, 237, 223, .62);
+  --label3: rgba(243, 237, 223, .34);
+  --fill: rgba(243, 237, 223, .1);
+  --fill2: rgba(243, 237, 223, .2);
+  --gray: #8e8e93;
+  --tint: #46b3a3;
+  --tint-deep: #2E9E8F;
+  --danger: #ff453a;
+  --bar: rgba(19, 26, 44, .8);
+
+  --un-accent: var(--tint);
+  --un-accent-contrast: #ffffff;
+  --un-action-danger: var(--danger);
+  --un-action-neutral: var(--gray);
+  --un-surface: var(--card);
+  --un-hairline: var(--separator);
+  --un-muted: var(--label2);
+  --un-group-bg: var(--card);
+  --un-sheet-bg: var(--card);
+  --un-navbar-bg: var(--bar);
+  --un-backdrop: rgba(0, 0, 0, .4);
+}
+body { background: var(--bg); color: var(--label); font-family: 'Inter', system-ui, sans-serif; }
+/* Fraunces is the editorial voice — titles only; body copy stays Inter. */
+.un-navbar-title, .un-navbar-large { font-family: 'Fraunces', Georgia, serif; letter-spacing: -.01em; }
+.tinted { color: var(--tint); }
+
+/* ── Reminders-style circular checkbox (deliberately custom — the kit's
+   only toggle is the un-switch, the wrong idiom for completing a todo) ── */
+.todo-check {
+  appearance: none; -webkit-appearance: none;
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--label3);
+  background: transparent;
+  cursor: pointer; position: relative; flex-shrink: 0;
+  transition: background .15s, border-color .15s, scale .15s;
+}
+.todo-check:hover { border-color: var(--tint); }
+.todo-check:active { scale: .88; }
+.todo-check:checked { background: var(--tint); border-color: var(--tint); }
+.todo-check:checked::after {
+  content: ''; position: absolute;
+  left: 6.5px; top: 3px; width: 6px; height: 11px;
+  border: solid #fff; border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}

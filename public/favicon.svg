@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- 📝 memo: violet tile (matches the homescreen icon), paper + pencil -->
+  <rect width="64" height="64" rx="14" fill="#7c3aed"/>
+  <rect x="13" y="11" width="30" height="42" rx="4" fill="#fafafa"/>
+  <line x1="19" y1="21" x2="37" y2="21" stroke="#a1a1aa" stroke-width="3" stroke-linecap="round"/>
+  <line x1="19" y1="29" x2="37" y2="29" stroke="#a1a1aa" stroke-width="3" stroke-linecap="round"/>
+  <line x1="19" y1="37" x2="29" y2="37" stroke="#a1a1aa" stroke-width="3" stroke-linecap="round"/>
+  <g transform="translate(50 26) rotate(45)">
+    <rect x="-4.5" y="0" width="9" height="22" rx="1.5" fill="#f59e0b"/>
+    <polygon points="-4.5,22 4.5,22 0,30" fill="#fcd34d"/>
+    <polygon points="-1.8,25.2 1.8,25.2 0,30" fill="#3f3f46"/>
+    <rect x="-4.5" y="-3" width="9" height="4" rx="1.5" fill="#ef4444"/>
+  </g>
+</svg>
