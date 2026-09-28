@@ -1,7 +1,5 @@
 {
-  "icon": {
-    "emoji": "📝"
-  },
+  "icon": { "image": "brand/icon.png", "emoji": "📝" },
   "secrets": [],
   "tests": [
     {
